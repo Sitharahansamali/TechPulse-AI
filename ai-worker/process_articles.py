@@ -38,30 +38,42 @@ for article in articles:
     print("Processing:", article.get("title"))
 
     prompt = f"""
-Analyze this IT news article.
-
-Possible Categories:
-- AI
-- Cybersecurity
-- Data Science
-- Cloud Computing
-- DevOps
-- Blockchain
-
-Return ONLY valid JSON:
-
-{{
-  "category": "",
-  "summary": "",
-  "tags": []
-}}
-
-Title:
-{article.get('title')}
-
-Description:
-{article.get('description')}
-"""
+        You are an AI news analyzer.
+        
+        Analyze the following news article carefully.
+        
+        Possible Categories:
+        - AI
+        - Cybersecurity
+        - Data Science
+        - Cloud Computing
+        - DevOps
+        - Blockchain
+        - Others
+        
+        Rules:
+        1. If the article is NOT related to IT or technology, category MUST be "Others".
+        2. Generate a short professional summary in 2-3 sentences.
+        3. Generate 3 to 5 related tags.
+        4. Return ONLY valid JSON.
+        5. Do not include markdown or explanations.
+        
+        Return Format:
+        {{
+          "category": "",
+          "summary": "",
+          "tags": []
+        }}
+        
+        Article Title:
+        {article.get('title', '')}
+        
+        Article Description:
+        {article.get('description', '')}
+        
+        Article Content:
+        {article.get('content', '')}
+        """
 
     try:
 
@@ -71,7 +83,8 @@ Description:
                 "model": OLLAMA_MODEL,
                 "prompt": prompt,
                 "stream": False
-            }
+            },
+            timeout=120
         )
 
         print("Ollama Response Status:", response.status_code)
@@ -90,14 +103,22 @@ Description:
         cleaned = match.group(0)
         
         ai = json.loads(cleaned)
+
+        category = ai.get("category", "Others")
+        summary = ai.get("summary", "No summary available")
+        tags = ai.get("tags", [])
+        
+        # Ensure tags is always a list
+        if not isinstance(tags, list):
+            tags = []
         
         collection.update_one(
             {"_id": article["_id"]},
             {
                 "$set": {
-                    "category": ai.get("category"),
-                    "summary": ai.get("summary"),
-                    "tags": ai.get("tags"),
+                    "category": category,
+                    "summary": summary,
+                    "tags": tags,
                     "processed": True
                 }
             }
