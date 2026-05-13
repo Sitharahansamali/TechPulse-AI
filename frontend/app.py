@@ -97,6 +97,16 @@ search = st.text_input(
     "🔍 Search Articles"
 )
 
+# get category image if image-url is not preset in the article
+CATEGORY_IMAGES = {
+    "AI": "https://images.unsplash.com/photo-1677442136019-21780ecad995",
+    "Cybersecurity": "https://images.unsplash.com/photo-1510511459019-5dda7724fd87",
+    "Cloud Computing": "https://images.unsplash.com/photo-1451187580459-43490279c0fa",
+    "Blockchain": "https://images.unsplash.com/photo-1639762681485-074b7f938ba0",
+    "Data Science": "https://images.unsplash.com/photo-1551288049-bebda4e38f71",
+    "Other": "https://images.unsplash.com/photo-1495020689067-958852a7765e"
+}
+
 # Fetch Articles
 try:
 
@@ -160,12 +170,19 @@ try:
 
         with col1:
 
-            if article.get("image"):
+            image_url = article.get("image")
 
-                st.image(
-                    article.get("image"),
-                    use_container_width=True
+            if not image_url:
+            
+                image_url = CATEGORY_IMAGES.get(
+                    article.get("category"),
+                    CATEGORY_IMAGES["Other"]
                 )
+            
+            st.image(
+                image_url,
+                use_container_width=True
+            )    
 
         with col2:
 
